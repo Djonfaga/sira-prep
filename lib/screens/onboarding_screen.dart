@@ -76,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ).center(),
                   const SizedBox(height: 24),
-                  Text('Welcome to TOEFLsix',
+                  Text('Welcome to Sira Prep',
                       style: t.displayMedium, textAlign: TextAlign.center),
                   const SizedBox(height: 8),
                   Text(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Floating header pill: [hamburger | logo + "TOEFLsix"].
+/// Floating header pill: [hamburger | logo + "Sira Prep"].
 ///
 /// The TOEFL/IELTS switch lives only in Settings — switching exam is rare and
 /// shouldn't take persistent header real-estate.
@@ -45,7 +45,7 @@ class AppHeader extends StatelessWidget {
                           const _LogoBadge(),
                           const SizedBox(width: 10),
                           Text(
-                            'TOEFLsix',
+                            'Sira Prep',
                             style: TextStyle(
                               color: c.text,
                               fontSize: 18,

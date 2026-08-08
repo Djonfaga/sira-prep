@@ -16,7 +16,7 @@
 **app name** ("TOEFLsix") risks rejection/takedown even with a disclaimer.
 - **Safer:** brand it with your OWN name and use the exams *descriptively*, e.g.
   **"Sira Prep — for TOEFL & IELTS"**, **"GlassPrep: English Exam Trainer"**, **"SixScore"**.
-- ⚠ The **package id `com.toeflsix.toeflsix` is permanent** once you publish — pick the final
+- ⚠ The **package id `com.siraprep.app` is permanent** once you publish — pick the final
   identity **before** first upload. (Display name = `android:label` in AndroidManifest.xml;
   I left it unchanged pending your choice.)
 

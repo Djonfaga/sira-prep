@@ -1,4 +1,4 @@
-package com.toeflsix.toeflsix
+package com.siraprep.app
 
 import io.flutter.embedding.android.FlutterActivity
 

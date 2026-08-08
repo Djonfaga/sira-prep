@@ -17,7 +17,7 @@ class ToeflSixApp extends StatelessWidget {
     final user = context.watch<UserState>();
 
     return MaterialApp(
-      title: 'TOEFLsix',
+      title: 'Sira Prep',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

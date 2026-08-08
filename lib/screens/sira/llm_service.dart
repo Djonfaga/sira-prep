@@ -51,7 +51,7 @@ class LlmService {
         'Content-Type': 'application/json',
         // OpenRouter uses these for attribution/rankings; harmless elsewhere.
         'HTTP-Referer': 'https://toeflsix.app',
-        'X-Title': 'TOEFLsix',
+        'X-Title': 'Sira Prep',
       };
 
   Future<String> _post(List<Map<String, String>> messages,

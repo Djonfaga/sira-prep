@@ -388,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'TOEFLsix · v1.0.0',
+                      'Sira Prep · v1.0.0',
                       style: t.labelSmall,
                     ),
                     const SizedBox(height: 8),
