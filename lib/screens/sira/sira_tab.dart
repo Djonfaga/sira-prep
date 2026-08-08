@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../state/settings_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/icon_tile.dart';
+import '../paywall_screen.dart';
 import '../settings/settings_screen.dart';
 import 'llm_service.dart';
 
@@ -68,11 +70,21 @@ class _SiraTabState extends State<SiraTab> {
   Future<void> _send([String? prefilled]) async {
     final text = (prefilled ?? _input.text).trim();
     if (text.isEmpty) return;
+
+    // The free tier includes a lifetime allowance of coach messages. Checked
+    // before the request is built so a capped user never burns an API call.
+    final ent = context.read<Entitlements>();
+    if (!ent.canSendAiMessage) {
+      await PaywallScreen.show(context, trigger: PaywallTrigger.aiLimit);
+      return;
+    }
+
     final svc = _service(context);
     if (!svc.ready) {
       _showApiKeyHint();
       return;
     }
+    ent.registerAiMessage();
     _input.clear();
     final placeholder = _Message(role: 'sira', text: '', thinking: true);
     setState(() {
@@ -280,9 +292,9 @@ class _EmptyState extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppPalette.accentWarn.withOpacity(0.10),
+                    color: AppPalette.accentWarn.withValues(alpha: 0.10),
                     border: Border.all(
-                        color: AppPalette.accentWarn.withOpacity(0.4)),
+                        color: AppPalette.accentWarn.withValues(alpha: 0.4)),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -334,7 +346,7 @@ class _SuggestionPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: shape,
-            color: Colors.white.withOpacity(0.04),
+            color: Colors.white.withValues(alpha: 0.04),
             border: Border.all(color: context.c.border),
           ),
           child: Text(
@@ -386,11 +398,11 @@ class _Bubble extends StatelessWidget {
                   bottomRight: Radius.circular(isUser ? 4 : 16),
                 ),
                 color: isUser
-                    ? AppPalette.brandBlue.withOpacity(0.20)
-                    : Colors.white.withOpacity(0.04),
+                    ? AppPalette.brandBlue.withValues(alpha: 0.20)
+                    : Colors.white.withValues(alpha: 0.04),
                 border: Border.all(
                   color: isUser
-                      ? AppPalette.brandBlue.withOpacity(0.55)
+                      ? AppPalette.brandBlue.withValues(alpha: 0.55)
                       : context.c.border,
                 ),
               ),
@@ -443,7 +455,7 @@ class _IconPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: shape,
-            color: Colors.white.withOpacity(0.04),
+            color: Colors.white.withValues(alpha: 0.04),
             border: Border.all(color: context.c.border),
           ),
           child: Row(
@@ -494,7 +506,7 @@ class _SendButton extends StatelessWidget {
                 ? []
                 : [
                     BoxShadow(
-                      color: AppPalette.brandBlue.withOpacity(0.5),
+                      color: AppPalette.brandBlue.withValues(alpha: 0.5),
                       blurRadius: 14,
                       spreadRadius: -2,
                     ),

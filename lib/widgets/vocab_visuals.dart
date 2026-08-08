@@ -63,8 +63,8 @@ class _Pill extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           horizontal: dense ? 8 : 10, vertical: dense ? 4 : 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.14),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.14),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(text,
@@ -191,7 +191,7 @@ class _FamilyTree extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 boxShadow: [
                   BoxShadow(
-                      color: AppPalette.brandBlue.withOpacity(0.4),
+                      color: AppPalette.brandBlue.withValues(alpha: 0.4),
                       blurRadius: 14,
                       spreadRadius: -4),
                 ],
@@ -385,8 +385,8 @@ class _RegisterScale extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         AppPalette.brandBlue,
-                        AppPalette.brandBlue.withOpacity(0.4),
-                        AppPalette.accentSira.withOpacity(0.4),
+                        AppPalette.brandBlue.withValues(alpha: 0.4),
+                        AppPalette.accentSira.withValues(alpha: 0.4),
                         AppPalette.accentSira,
                       ],
                     ),
@@ -413,13 +413,13 @@ class _RegisterScale extends StatelessWidget {
                           horizontal: 6, vertical: 6),
                       decoration: BoxDecoration(
                         color: Color.lerp(
-                                AppPalette.brandBlue.withOpacity(0.18),
-                                AppPalette.accentSira.withOpacity(0.18),
+                                AppPalette.brandBlue.withValues(alpha: 0.18),
+                                AppPalette.accentSira.withValues(alpha: 0.18),
                                 i / (r.length - 1))!,
                         border: Border.all(
                             color: Color.lerp(
-                                    AppPalette.brandBlue.withOpacity(0.45),
-                                    AppPalette.accentSira.withOpacity(0.45),
+                                    AppPalette.brandBlue.withValues(alpha: 0.45),
+                                    AppPalette.accentSira.withValues(alpha: 0.45),
                                     i / (r.length - 1))!),
                         borderRadius: BorderRadius.circular(8),
                       ),

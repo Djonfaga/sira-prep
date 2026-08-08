@@ -51,7 +51,7 @@ class BottomNav extends StatelessWidget {
                 border: Border.all(color: c.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.5 : 0.1),
+                    color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1),
                     blurRadius: 30,
                     offset: const Offset(0, 18),
                     spreadRadius: -8,
@@ -103,7 +103,7 @@ class _NavSlot extends StatelessWidget {
             curve: Curves.easeOut,
             decoration: BoxDecoration(
               borderRadius: shape,
-              color: active ? c.bg.withOpacity(0.55) : Colors.transparent,
+              color: active ? c.bg.withValues(alpha: 0.55) : Colors.transparent,
               border: Border.all(
                 color: active ? c.borderStrong : Colors.transparent,
               ),

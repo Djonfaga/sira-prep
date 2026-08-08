@@ -69,7 +69,7 @@ class _Pill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             borderRadius: shape,
-            color: selected ? c.bg.withOpacity(0.55) : Colors.transparent,
+            color: selected ? c.bg.withValues(alpha: 0.55) : Colors.transparent,
             border: Border.all(
               color: selected ? c.borderStrong : Colors.transparent,
               width: 1,

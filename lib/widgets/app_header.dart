@@ -1,7 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../screens/paywall_screen.dart';
+import '../state/entitlements.dart';
 import '../theme/app_theme.dart';
 
 /// Floating header pill: [hamburger | logo + "Sira Prep"].
@@ -44,15 +47,19 @@ class AppHeader extends StatelessWidget {
                         children: [
                           const _LogoBadge(),
                           const SizedBox(width: 10),
-                          Text(
-                            'Sira Prep',
-                            style: TextStyle(
-                              color: c.text,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.3,
+                          Expanded(
+                            child: Text(
+                              'Sira Prep',
+                              style: TextStyle(
+                                color: c.text,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const _StatusPill(),
                         ],
                       ),
                     ),
@@ -61,6 +68,62 @@ class AppHeader extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Free users see hearts remaining; Pro users see a PRO badge instead. Tapping
+/// either opens the paywall, which doubles as the "what am I on?" screen.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final ent = context.watch<Entitlements>();
+    final pro = ent.isPro;
+    final hearts = ent.heartsRemaining;
+    final empty = !pro && hearts == 0;
+    final accent = pro
+        ? AppPalette.accentSira
+        : empty
+            ? c.textMuted
+            : AppPalette.accentDanger;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: () => PaywallScreen.show(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            color: accent.withValues(alpha: 0.14),
+            border: Border.all(color: accent.withValues(alpha: 0.45)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                pro ? Icons.workspace_premium_outlined : Icons.favorite_rounded,
+                size: 15,
+                color: accent,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                pro ? 'PRO' : '$hearts',
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -114,12 +177,12 @@ class _LogoBadge extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppPalette.brandBlue.withOpacity(0.45),
+            color: AppPalette.brandBlue.withValues(alpha: 0.45),
             blurRadius: 14,
             spreadRadius: -2,
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.25)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),

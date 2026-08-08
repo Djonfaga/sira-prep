@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/models.dart';
 import '../../data/store.dart';
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../state/user_state.dart';
 import '../../theme/app_theme.dart';
@@ -12,6 +13,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
 import '../../widgets/segment_pills.dart';
+import '../paywall_screen.dart';
 import 'grammar_player.dart';
 import 'grammar_read_screen.dart';
 
@@ -83,6 +85,7 @@ class _GrammarPracticeLanding extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final exam = context.watch<ExamModeState>().exam;
     final user = context.watch<UserState>();
+    final ent = context.watch<Entitlements>();
     final all = contentFor(exam).grammar;
     final chunk = UserState.chunkSize;
     final sets = <List<GrammarItem>>[];
@@ -116,7 +119,9 @@ class _GrammarPracticeLanding extends StatelessWidget {
                                 ?.copyWith(letterSpacing: 1.4)),
                         const SizedBox(height: 4),
                         Text(
-                          '${sets.length} ${sets.length == 1 ? "set" : "sets"} · up to $chunk questions each',
+                          ent.isPro
+                              ? '${sets.length} ${sets.length == 1 ? "set" : "sets"} · up to $chunk questions each'
+                              : '${sets.length} sets · ${FreeTier.grammarSets} free · up to $chunk questions each',
                           style: t.bodyMedium,
                         ),
                       ],
@@ -146,21 +151,28 @@ class _GrammarPracticeLanding extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               GlowButton(
-                label: completedCount == sets.length
-                    ? 'Restart set 1'
-                    : 'Continue · set ${nextIdx + 1}',
-                icon: Icons.play_arrow_rounded,
+                label: !ent.canAccessGrammarSet(nextIdx)
+                    ? 'Unlock all ${sets.length} sets'
+                    : completedCount == sets.length
+                        ? 'Restart set 1'
+                        : 'Continue · set ${nextIdx + 1}',
+                icon: !ent.canAccessGrammarSet(nextIdx)
+                    ? Icons.lock_open_outlined
+                    : Icons.play_arrow_rounded,
                 expand: true,
                 onPressed: sets.isEmpty
                     ? null
-                    : () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => GrammarPlayer(
-                              items: sets[nextIdx],
-                              setIndex: nextIdx,
+                    : !ent.canAccessGrammarSet(nextIdx)
+                        ? () => PaywallScreen.show(context,
+                            trigger: PaywallTrigger.contentLocked)
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => GrammarPlayer(
+                                  items: sets[nextIdx],
+                                  setIndex: nextIdx,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
               ),
             ],
           ),
@@ -172,14 +184,18 @@ class _GrammarPracticeLanding extends StatelessWidget {
             sub:
                 '${sets[i].length} ${sets[i].length == 1 ? "question" : "questions"}',
             completedAt: user.setCompletedAt(exam, 'grammar', i),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => GrammarPlayer(
-                  items: sets[i],
-                  setIndex: i,
-                ),
-              ),
-            ),
+            locked: !ent.canAccessGrammarSet(i),
+            onTap: !ent.canAccessGrammarSet(i)
+                ? () => PaywallScreen.show(context,
+                    trigger: PaywallTrigger.contentLocked)
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => GrammarPlayer(
+                          items: sets[i],
+                          setIndex: i,
+                        ),
+                      ),
+                    ),
           ),
           const SizedBox(height: 10),
         ],
@@ -228,17 +244,26 @@ class _SetRow extends StatelessWidget {
     required this.sub,
     required this.completedAt,
     required this.onTap,
+    this.locked = false,
   });
   final String label;
   final String sub;
   final DateTime? completedAt;
   final VoidCallback onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final done = completedAt != null;
-    return GlassCard(
+    final accent = locked
+        ? context.c.textMuted
+        : done
+            ? AppPalette.accentSuccess
+            : AppPalette.brandBlue;
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: onTap,
       child: Row(
@@ -248,21 +273,17 @@ class _SetRow extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: done
-                  ? AppPalette.accentSuccess.withOpacity(0.18)
-                  : AppPalette.brandBlue.withOpacity(0.18),
-              border: Border.all(
-                color: done
-                    ? AppPalette.accentSuccess.withOpacity(0.55)
-                    : AppPalette.brandBlue.withOpacity(0.55),
-              ),
+              color: accent.withValues(alpha: 0.18),
+              border: Border.all(color: accent.withValues(alpha: 0.55)),
             ),
             child: Icon(
-              done ? Icons.check_rounded : Icons.play_arrow_rounded,
+              locked
+                  ? Icons.lock_outline
+                  : done
+                      ? Icons.check_rounded
+                      : Icons.play_arrow_rounded,
               size: 18,
-              color: done
-                  ? AppPalette.accentSuccess
-                  : AppPalette.brandBlue,
+              color: accent,
             ),
           ),
           const SizedBox(width: 12),
@@ -275,17 +296,23 @@ class _SetRow extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(
-                  done
-                      ? 'Completed · ${DateFormat.MMMd().format(completedAt!)}'
-                      : sub,
+                  locked
+                      ? 'Pro · $sub'
+                      : done
+                          ? 'Completed · ${DateFormat.MMMd().format(completedAt!)}'
+                          : sub,
                   style: t.bodySmall,
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              color: context.c.textMuted, size: 22),
+          Icon(
+            locked ? Icons.lock_outline : Icons.chevron_right_rounded,
+            color: context.c.textMuted,
+            size: 22,
+          ),
         ],
+      ),
       ),
     );
   }

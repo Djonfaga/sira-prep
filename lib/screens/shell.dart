@@ -20,15 +20,6 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   NavTab _tab = NavTab.home;
 
-  // Keep each tab's state across switches so scroll positions and form values
-  // survive the user moving between tabs.
-  final _keys = {
-    NavTab.home: GlobalKey<NavigatorState>(),
-    NavTab.sira: GlobalKey<NavigatorState>(),
-    NavTab.mocks: GlobalKey<NavigatorState>(),
-    NavTab.study: GlobalKey<NavigatorState>(),
-  };
-
   Widget _bodyFor(NavTab tab) {
     switch (tab) {
       case NavTab.home:

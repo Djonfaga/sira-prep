@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../data/store.dart';
 import '../../state/exam_mode.dart';
-import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/icon_tile.dart';
 import '../../widgets/section_header.dart';

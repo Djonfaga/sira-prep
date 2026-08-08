@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../state/billing.dart';
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../state/settings_state.dart';
 import '../../state/user_state.dart';
@@ -10,6 +14,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
 import '../../widgets/segment_pills.dart';
+import '../paywall_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -48,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final exam = context.read<ExamModeState>().exam;
     final ok = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (_) => Theme(
         data: Theme.of(context),
         child: AlertDialog(
@@ -107,6 +112,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
+
+              const _SubscriptionCard(),
+              const SizedBox(height: 14),
 
               // Account
               GlassCard(
@@ -351,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Danger zone
               GlassCard(
                 tint: const Color(0x30FF6F6F),
-                borderColor: AppPalette.accentDanger.withOpacity(0.4),
+                borderColor: AppPalette.accentDanger.withValues(alpha: 0.4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -427,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         hintText: hint,
         hintStyle: TextStyle(color: context.c.textFaint),
         filled: true,
-        fillColor: context.c.bg.withOpacity(0.55),
+        fillColor: context.c.bg.withValues(alpha: 0.55),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
@@ -442,6 +450,117 @@ class _SettingsScreenState extends State<SettingsScreen> {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppPalette.brandBlue, width: 1.4),
         ),
+      ),
+    );
+  }
+}
+
+/// Plan status, upgrade entry point, restore, and the Play-managed
+/// cancellation link. Play policy requires a subscriber to be able to reach
+/// their subscription management from inside the app.
+class _SubscriptionCard extends StatelessWidget {
+  const _SubscriptionCard();
+
+  static const _packageName = 'com.siraprep.app';
+
+  Future<void> _openPlaySubscriptions(String? productId) async {
+    final uri = Uri.parse(
+      productId == null
+          ? 'https://play.google.com/store/account/subscriptions'
+          : 'https://play.google.com/store/account/subscriptions'
+              '?sku=$productId&package=$_packageName',
+    );
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final ent = context.watch<Entitlements>();
+    final billing = context.watch<BillingService>();
+    final pro = ent.isPro;
+    // The lifetime unlock is a one-time purchase — there is nothing to cancel,
+    // so offering a "manage subscription" link for it would only confuse.
+    final isSubscription =
+        ProProducts.subscriptions.contains(ent.proSource);
+
+    return GlassCard(
+      tint: GlassTints.forIndex(1),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconTile(
+                icon: pro
+                    ? Icons.workspace_premium_outlined
+                    : Icons.lock_open_outlined,
+                color: pro ? AppPalette.accentSira : AppPalette.brandBlue,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(ent.planLabel, style: t.headlineMedium),
+                    const SizedBox(height: 6),
+                    Text(
+                      pro
+                          ? 'Every passage, lecture, task, mock exam and '
+                              'unlimited Sira coaching are unlocked.'
+                          : 'Free includes the first ${FreeTier.itemsPerSkill} '
+                              'items of each skill, ${FreeTier.vocabSets} '
+                              'vocabulary set, ${FreeTier.grammarSets} grammar '
+                              'set, ${FreeTier.mockExams} full mock, '
+                              '${FreeTier.dailyHearts} hearts a day and '
+                              '${FreeTier.aiMessageLimit} Sira messages.',
+                      style: t.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (!pro) ...[
+            const SizedBox(height: 14),
+            GlowButton(
+              label: 'See Pro plans',
+              icon: Icons.workspace_premium_outlined,
+              expand: true,
+              onPressed: () => PaywallScreen.show(context),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              TextButton(
+                onPressed: billing.purchasePending
+                    ? null
+                    : () async {
+                        await context.read<BillingService>().restore();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.read<Entitlements>().isPro
+                                  ? 'Pro restored.'
+                                  : 'No previous purchase found on this '
+                                      'Google account.',
+                            ),
+                          ),
+                        );
+                      },
+                child: const Text('Restore purchases'),
+              ),
+              if (pro && isSubscription)
+                TextButton(
+                  onPressed: () => _openPlaySubscriptions(ent.proSource),
+                  child: const Text('Manage'),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -471,11 +590,11 @@ class _ProviderChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: shape,
             color: selected
-                ? AppPalette.accentSira.withOpacity(0.18)
+                ? AppPalette.accentSira.withValues(alpha: 0.18)
                 : context.c.glassFill,
             border: Border.all(
               color: selected
-                  ? AppPalette.accentSira.withOpacity(0.6)
+                  ? AppPalette.accentSira.withValues(alpha: 0.6)
                   : context.c.border,
               width: selected ? 1.4 : 1,
             ),

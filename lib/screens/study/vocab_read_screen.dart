@@ -243,8 +243,8 @@ class _ExampleLine extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: AppPalette.brandBlue.withOpacity(0.08),
-        border: Border.all(color: AppPalette.brandBlue.withOpacity(0.35)),
+        color: AppPalette.brandBlue.withValues(alpha: 0.08),
+        border: Border.all(color: AppPalette.brandBlue.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

@@ -27,7 +27,7 @@ class AppBackground extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    (isDark ? Colors.white : Colors.black).withOpacity(0.02),
+                    (isDark ? Colors.white : Colors.black).withValues(alpha: 0.02),
                     Colors.transparent,
                   ],
                 ),

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/store.dart';
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/icon_tile.dart';
+import '../paywall_screen.dart';
 import 'listening_player.dart';
 import 'reading_player.dart';
 import 'speaking_player.dart';
@@ -93,6 +95,9 @@ class SkillListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final items = _items(context);
+    final ent = context.watch<Entitlements>();
+    final freeCount =
+        ent.isPro ? items.length : FreeTier.itemsPerSkill.clamp(0, items.length);
     return Scaffold(
       backgroundColor: context.c.bg,
       body: AppBackground(
@@ -127,8 +132,11 @@ class SkillListScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                    '${items.length} ${items.length == 1 ? "ITEM" : "ITEMS"}',
-                    style: t.labelSmall),
+                  ent.isPro
+                      ? '${items.length} ${items.length == 1 ? "ITEM" : "ITEMS"}'
+                      : '${items.length} ITEMS · $freeCount FREE',
+                  style: t.labelSmall,
+                ),
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -138,28 +146,42 @@ class SkillListScreen extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     final item = items[i];
-                    return GlassCard(
-                      tint: GlassTints.forIndex(i),
-                      onTap: () => item.onOpen(context),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      child: Row(
-                        children: [
-                          IconTile(icon: _icon, size: 42),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.title, style: t.titleMedium),
-                                const SizedBox(height: 3),
-                                Text('START EXERCISE',
-                                    style: t.labelSmall),
-                              ],
+                    final locked = !ent.canAccessSkillItem(i);
+                    return Opacity(
+                      opacity: locked ? 0.55 : 1,
+                      child: GlassCard(
+                        tint: locked ? null : GlassTints.forIndex(i),
+                        onTap: locked
+                            ? () => PaywallScreen.show(context,
+                                trigger: PaywallTrigger.contentLocked)
+                            : () => item.onOpen(context),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        child: Row(
+                          children: [
+                            IconTile(icon: locked ? Icons.lock_outline : _icon,
+                                size: 42),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.title, style: t.titleMedium),
+                                  const SizedBox(height: 3),
+                                  Text(locked ? 'PRO' : 'START EXERCISE',
+                                      style: t.labelSmall),
+                                ],
+                              ),
                             ),
-                          ),
-                          Icon(Icons.arrow_forward_rounded,
-                              color: context.c.textMuted, size: 20),
-                        ],
+                            Icon(
+                              locked
+                                  ? Icons.lock_outline
+                                  : Icons.arrow_forward_rounded,
+                              color: context.c.textMuted,
+                              size: 20,
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },

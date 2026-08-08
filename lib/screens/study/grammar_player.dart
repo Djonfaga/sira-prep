@@ -10,6 +10,7 @@ import '../../widgets/app_background.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
+import 'hearts_gate.dart';
 
 /// Quick-fire grammar quiz. Plays a slice of at most [UserState.chunkSize]
 /// items so each session stays inside the pedagogical sweet-spot. The
@@ -45,18 +46,25 @@ class _GrammarPlayerState extends State<GrammarPlayer> {
         widget.items ?? contentFor(_exam).grammar);
   }
 
-  void _select(int idx) {
+  Future<void> _select(int idx) async {
     if (_reveal) return;
+    final item = _queue[_index];
+    final right = item.options[idx] == item.answer;
     setState(() {
       _picked = idx;
       _reveal = true;
-      final item = _queue[_index];
       _ruleAttempts[item.rule] = (_ruleAttempts[item.rule] ?? 0) + 1;
-      if (item.options[idx] == item.answer) {
+      if (right) {
         _correct++;
         _ruleHits[item.rule] = (_ruleHits[item.rule] ?? 0) + 1;
       }
     });
+
+    // A wrong answer costs a free-tier heart. Out of hearts ends the session
+    // with the score so far recorded, so nothing the student did is lost.
+    final mayContinue =
+        await HeartsGate.registerAnswer(context, correct: right);
+    if (!mayContinue && mounted) _finish();
   }
 
   void _next() {
@@ -196,9 +204,9 @@ class _GrammarPlayerState extends State<GrammarPlayer> {
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          color: AppPalette.brandBlue.withOpacity(0.15),
+                          color: AppPalette.brandBlue.withValues(alpha: 0.15),
                           border: Border.all(
-                              color: AppPalette.brandBlue.withOpacity(0.45)),
+                              color: AppPalette.brandBlue.withValues(alpha: 0.45)),
                         ),
                         child: Text(item.rule.toUpperCase(),
                             style: const TextStyle(
@@ -283,13 +291,13 @@ class _OptionTile extends StatelessWidget {
     switch (state) {
       case _OptionState.correct:
         border = AppPalette.accentSuccess;
-        bg = AppPalette.accentSuccess.withOpacity(0.12);
+        bg = AppPalette.accentSuccess.withValues(alpha: 0.12);
         icon = Icons.check_circle_outline;
         iconColor = AppPalette.accentSuccess;
         break;
       case _OptionState.wrong:
         border = AppPalette.accentDanger;
-        bg = AppPalette.accentDanger.withOpacity(0.12);
+        bg = AppPalette.accentDanger.withValues(alpha: 0.12);
         icon = Icons.cancel_outlined;
         iconColor = AppPalette.accentDanger;
         break;

@@ -24,9 +24,9 @@ class IconTile extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(size * 0.28),
-        border: Border.all(color: color.withOpacity(0.28), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.28), width: 1),
       ),
       child: Icon(icon, color: color, size: size * iconScale),
     );

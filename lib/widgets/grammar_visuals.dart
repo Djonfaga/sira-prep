@@ -58,8 +58,8 @@ class _TenseTimeline extends StatelessWidget {
                 mutedColor: context.c.textMuted,
                 tickColor: AppPalette.brandBlue,
                 glow: isDark
-                    ? AppPalette.brandBlue.withOpacity(0.7)
-                    : AppPalette.brandBlue.withOpacity(0.6),
+                    ? AppPalette.brandBlue.withValues(alpha: 0.7)
+                    : AppPalette.brandBlue.withValues(alpha: 0.6),
               ),
               size: Size.infinite,
             ),
@@ -157,7 +157,7 @@ class _TimelinePainter extends CustomPainter {
       final y = centerY - yOffset;
       final paint = Paint()
         ..shader = LinearGradient(
-          colors: [color.withOpacity(0.0), color, color.withOpacity(0.0)],
+          colors: [color.withValues(alpha: 0.0), color, color.withValues(alpha: 0.0)],
         ).createShader(Rect.fromLTWH(left, y - 4, right - left, 8));
       canvas.drawRRect(
         RRect.fromRectAndRadius(
@@ -320,8 +320,8 @@ class _Token extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        border: Border.all(color: color.withOpacity(0.45)),
+        color: color.withValues(alpha: 0.12),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(text,
@@ -364,9 +364,9 @@ class _ParallelismLines extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppPalette.brandBlue.withOpacity(0.18),
+                    color: AppPalette.brandBlue.withValues(alpha: 0.18),
                     border: Border.all(
-                        color: AppPalette.brandBlue.withOpacity(0.5)),
+                        color: AppPalette.brandBlue.withValues(alpha: 0.5)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   alignment: Alignment.center,

@@ -64,12 +64,12 @@ class GlowButton extends StatelessWidget {
               ? []
               : [
                   BoxShadow(
-                    color: glow.withOpacity(0.55),
+                    color: glow.withValues(alpha: 0.55),
                     blurRadius: 28,
                     spreadRadius: -4,
                   ),
                   BoxShadow(
-                    color: glow.withOpacity(0.35),
+                    color: glow.withValues(alpha: 0.35),
                     blurRadius: 50,
                     spreadRadius: -10,
                   ),

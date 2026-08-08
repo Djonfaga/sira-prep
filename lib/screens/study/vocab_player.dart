@@ -11,6 +11,7 @@ import '../../widgets/app_background.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
+import 'hearts_gate.dart';
 
 /// Vocabulary review session inspired by WordUp: word + part-of-speech +
 /// definition + example sentence + TTS pronunciation, with "Know it" /
@@ -75,7 +76,7 @@ class _VocabPlayerState extends State<VocabPlayer> {
     await _tts.speak(c.word);
   }
 
-  void _record({required bool gotIt}) {
+  Future<void> _record({required bool gotIt}) async {
     final card = _current;
     if (card == null) return;
     final user = context.read<UserState>();
@@ -89,6 +90,11 @@ class _VocabPlayerState extends State<VocabPlayer> {
       _revealed = false;
       _index++;
     });
+
+    // "Still learning" is this player's wrong answer, so it costs a heart.
+    final mayContinue =
+        await HeartsGate.registerAnswer(context, correct: gotIt);
+    if (!mayContinue && mounted) _finishSession();
   }
 
   void _flip() => setState(() => _revealed = !_revealed);
@@ -316,9 +322,9 @@ class _WordCard extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppPalette.brandBlue.withOpacity(0.15),
+                        color: AppPalette.brandBlue.withValues(alpha: 0.15),
                         border: Border.all(
-                            color: AppPalette.brandBlue.withOpacity(0.45)),
+                            color: AppPalette.brandBlue.withValues(alpha: 0.45)),
                       ),
                       child: const Icon(Icons.volume_up_rounded,
                           color: AppPalette.brandBlue, size: 20),
@@ -430,8 +436,8 @@ class _ChoiceButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
-            border: Border.all(color: color.withOpacity(0.45), width: 1.4),
+            color: color.withValues(alpha: 0.12),
+            border: Border.all(color: color.withValues(alpha: 0.45), width: 1.4),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -469,9 +475,9 @@ class _SessionStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

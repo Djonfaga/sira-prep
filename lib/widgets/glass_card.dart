@@ -57,12 +57,12 @@ class GlassCard extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: isDark
                     ? [
-                        Colors.white.withOpacity(0.05),
-                        Colors.white.withOpacity(0.015),
+                        Colors.white.withValues(alpha: 0.05),
+                        Colors.white.withValues(alpha: 0.015),
                       ]
                     : [
-                        Colors.white.withOpacity(0.85),
-                        Colors.white.withOpacity(0.55),
+                        Colors.white.withValues(alpha: 0.85),
+                        Colors.white.withValues(alpha: 0.55),
                       ],
               ),
             ),
@@ -77,7 +77,7 @@ class GlassCard extends StatelessWidget {
                   gradient: RadialGradient(
                     center: tintAlignment,
                     radius: 1.1,
-                    colors: [tint!, tint!.withOpacity(0)],
+                    colors: [tint!, tint!.withValues(alpha: 0)],
                   ),
                 ),
               ),
@@ -94,7 +94,7 @@ class GlassCard extends StatelessWidget {
         border: Border.all(color: borderColor ?? c.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.45 : 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.08),
             blurRadius: 30,
             offset: const Offset(0, 18),
             spreadRadius: -8,
@@ -112,8 +112,8 @@ class GlassCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: radii,
-        splashColor: (isDark ? Colors.white : Colors.black).withOpacity(0.04),
-        highlightColor: (isDark ? Colors.white : Colors.black).withOpacity(0.02),
+        splashColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+        highlightColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.02),
         child: card,
       ),
     );

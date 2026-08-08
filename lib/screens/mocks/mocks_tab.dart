@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/models.dart';
 import '../../data/store.dart';
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../state/user_state.dart';
 import '../../theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/segment_pills.dart';
+import '../paywall_screen.dart';
 import 'mock_player.dart';
 
 enum _Filter { todo, done }
@@ -28,14 +30,22 @@ class _MocksTabState extends State<MocksTab> {
   Widget build(BuildContext context) {
     final exam = context.watch<ExamModeState>().exam;
     final user = context.watch<UserState>();
+    final ent = context.watch<Entitlements>();
     final content = contentFor(exam);
     final history = user.historyFor(exam);
     final doneIds = history.where((h) => h.module == 'mock').map((h) => h.title).toSet();
 
-    final mocks = content.mocks.where((m) {
+    // Gating is keyed to the mock's position in the canonical list, not its
+    // position after filtering — otherwise switching the To-Do/Done filter
+    // would silently change which exams are unlocked.
+    final mocks = <({MockExam mock, bool locked})>[];
+    for (var i = 0; i < content.mocks.length; i++) {
+      final m = content.mocks[i];
       final done = doneIds.contains(m.title);
-      return _filter == _Filter.done ? done : !done;
-    }).toList();
+      if (_filter == _Filter.done ? done : !done) {
+        mocks.add((mock: m, locked: !ent.canAccessMock(i)));
+      }
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
@@ -70,7 +80,11 @@ class _MocksTabState extends State<MocksTab> {
           // collapsed into a single compact list so the screen does not turn
           // into endless repetition.
           for (var i = 0; i < mocks.length && i < 10; i++) ...[
-            _MockCard(mock: mocks[i], index: i),
+            _MockCard(
+              mock: mocks[i].mock,
+              index: i,
+              locked: mocks[i].locked,
+            ),
             const SizedBox(height: 14),
           ],
           if (mocks.length > 10) ...[
@@ -88,7 +102,8 @@ class _MocksTabState extends State<MocksTab> {
                 children: [
                   for (var i = 10; i < mocks.length; i++)
                     _MockListRow(
-                      mock: mocks[i],
+                      mock: mocks[i].mock,
+                      locked: mocks[i].locked,
                       isLast: i == mocks.length - 1,
                     ),
                 ],
@@ -102,9 +117,14 @@ class _MocksTabState extends State<MocksTab> {
 }
 
 class _MockListRow extends StatelessWidget {
-  const _MockListRow({required this.mock, required this.isLast});
+  const _MockListRow({
+    required this.mock,
+    required this.isLast,
+    this.locked = false,
+  });
   final MockExam mock;
   final bool isLast;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -115,9 +135,12 @@ class _MockListRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => MockPlayer(mock: mock)),
-        ),
+        onTap: locked
+            ? () => PaywallScreen.show(context,
+                trigger: PaywallTrigger.mockLocked)
+            : () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => MockPlayer(mock: mock)),
+                ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
@@ -149,8 +172,11 @@ class _MockListRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.play_arrow_rounded,
-                  color: AppPalette.brandBlue, size: 22),
+              Icon(
+                locked ? Icons.lock_outline : Icons.play_arrow_rounded,
+                color: locked ? context.c.textMuted : AppPalette.brandBlue,
+                size: 22,
+              ),
             ],
           ),
         ),
@@ -160,22 +186,33 @@ class _MockListRow extends StatelessWidget {
 }
 
 class _MockCard extends StatelessWidget {
-  const _MockCard({required this.mock, required this.index});
+  const _MockCard({
+    required this.mock,
+    required this.index,
+    this.locked = false,
+  });
   final MockExam mock;
   final int index;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return GlassCard(
-      tint: GlassTints.forIndex(index + 1),
+    return Opacity(
+      opacity: locked ? 0.6 : 1,
+      child: GlassCard(
+      tint: locked ? null : GlassTints.forIndex(index + 1),
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const IconTile(icon: Icons.dashboard_outlined, size: 42),
+              IconTile(
+                  icon: locked
+                      ? Icons.lock_outline
+                      : Icons.dashboard_outlined,
+                  size: 42),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -208,14 +245,21 @@ class _MockCard extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: GlowButton(
-              label: 'Start',
-              icon: Icons.play_arrow_rounded,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => MockPlayer(mock: mock)),
-              ),
+              label: locked ? 'Unlock with Pro' : 'Start',
+              icon: locked
+                  ? Icons.lock_open_outlined
+                  : Icons.play_arrow_rounded,
+              onPressed: locked
+                  ? () => PaywallScreen.show(context,
+                      trigger: PaywallTrigger.mockLocked)
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => MockPlayer(mock: mock)),
+                      ),
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -230,7 +274,7 @@ class _SectionChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: context.c.border),
       ),

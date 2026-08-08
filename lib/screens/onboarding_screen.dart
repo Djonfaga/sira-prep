@@ -63,12 +63,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppPalette.brandBlue.withOpacity(0.55),
+                          color: AppPalette.brandBlue.withValues(alpha: 0.55),
                           blurRadius: 32,
                           spreadRadius: -4,
                         ),
                       ],
-                      border: Border.all(color: Colors.white.withOpacity(0.25)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
@@ -147,14 +147,12 @@ class _GlassTextField extends StatelessWidget {
     this.hint,
     this.textInputAction,
     this.onSubmitted,
-    this.keyboardType,
   });
 
   final TextEditingController controller;
   final String? hint;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
-  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
@@ -164,12 +162,11 @@ class _GlassTextField extends StatelessWidget {
       cursorColor: AppPalette.brandBlue,
       textInputAction: textInputAction,
       onSubmitted: onSubmitted,
-      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: context.c.textFaint),
         filled: true,
-        fillColor: context.c.bg.withOpacity(0.55),
+        fillColor: context.c.bg.withValues(alpha: 0.55),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

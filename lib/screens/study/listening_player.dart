@@ -234,7 +234,7 @@ class _PlayButton extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: AppPalette.brandBlue.withOpacity(isPlaying ? 0.7 : 0.5),
+              color: AppPalette.brandBlue.withValues(alpha: isPlaying ? 0.7 : 0.5),
               blurRadius: 28,
               spreadRadius: isPlaying ? 0 : -2,
             ),
@@ -302,8 +302,8 @@ class _OptionTile extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: shape,
             color: selected
-                ? AppPalette.brandBlue.withOpacity(0.15)
-                : Colors.white.withOpacity(0.025),
+                ? AppPalette.brandBlue.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.025),
             border: Border.all(
               color: selected ? AppPalette.brandBlue : context.c.border,
               width: selected ? 1.4 : 1,

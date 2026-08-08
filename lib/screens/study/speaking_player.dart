@@ -298,7 +298,7 @@ class _PhaseBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: Colors.white.withOpacity(0.07),
+              backgroundColor: Colors.white.withValues(alpha: 0.07),
               valueColor: AlwaysStoppedAnimation(color),
             ),
           ),

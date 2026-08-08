@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/models.dart';
 import '../../data/store.dart';
+import '../../state/entitlements.dart';
 import '../../state/exam_mode.dart';
 import '../../state/user_state.dart';
 import '../../theme/app_theme.dart';
@@ -12,6 +13,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/glow_button.dart';
 import '../../widgets/icon_tile.dart';
 import '../../widgets/segment_pills.dart';
+import '../paywall_screen.dart';
 import 'vocab_player.dart';
 import 'vocab_read_screen.dart';
 
@@ -83,6 +85,7 @@ class _VocabPracticeLanding extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final exam = context.watch<ExamModeState>().exam;
     final user = context.watch<UserState>();
+    final ent = context.watch<Entitlements>();
     final deck = contentFor(exam).vocab;
     final chunk = UserState.chunkSize;
 
@@ -119,7 +122,9 @@ class _VocabPracticeLanding extends StatelessWidget {
                                 ?.copyWith(letterSpacing: 1.4)),
                         const SizedBox(height: 4),
                         Text(
-                          '${sets.length} ${sets.length == 1 ? "set" : "sets"} · up to $chunk cards each',
+                          ent.isPro
+                              ? '${sets.length} ${sets.length == 1 ? "set" : "sets"} · up to $chunk cards each'
+                              : '${sets.length} sets · ${FreeTier.vocabSets} free · up to $chunk cards each',
                           style: t.bodyMedium,
                         ),
                       ],
@@ -142,21 +147,28 @@ class _VocabPracticeLanding extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               GlowButton(
-                label: completedCount == sets.length
-                    ? 'Replay set 1'
-                    : 'Continue · set ${nextIdx + 1}',
-                icon: Icons.play_arrow_rounded,
+                label: !ent.canAccessVocabSet(nextIdx)
+                    ? 'Unlock all ${sets.length} sets'
+                    : completedCount == sets.length
+                        ? 'Replay set 1'
+                        : 'Continue · set ${nextIdx + 1}',
+                icon: !ent.canAccessVocabSet(nextIdx)
+                    ? Icons.lock_open_outlined
+                    : Icons.play_arrow_rounded,
                 expand: true,
                 onPressed: sets.isEmpty
                     ? null
-                    : () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => VocabPlayer(
-                              cards: sets[nextIdx],
-                              setIndex: nextIdx,
+                    : !ent.canAccessVocabSet(nextIdx)
+                        ? () => PaywallScreen.show(context,
+                            trigger: PaywallTrigger.contentLocked)
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => VocabPlayer(
+                                  cards: sets[nextIdx],
+                                  setIndex: nextIdx,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
               ),
             ],
           ),
@@ -167,14 +179,18 @@ class _VocabPracticeLanding extends StatelessWidget {
             label: 'Set ${i + 1}',
             sub: '${sets[i].length} cards · ${_preview(sets[i])}',
             completedAt: user.setCompletedAt(exam, 'vocab', i),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => VocabPlayer(
-                  cards: sets[i],
-                  setIndex: i,
-                ),
-              ),
-            ),
+            locked: !ent.canAccessVocabSet(i),
+            onTap: !ent.canAccessVocabSet(i)
+                ? () => PaywallScreen.show(context,
+                    trigger: PaywallTrigger.contentLocked)
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => VocabPlayer(
+                          cards: sets[i],
+                          setIndex: i,
+                        ),
+                      ),
+                    ),
           ),
           const SizedBox(height: 10),
         ],
@@ -230,66 +246,77 @@ class _SetRow extends StatelessWidget {
     required this.sub,
     required this.completedAt,
     required this.onTap,
+    this.locked = false,
   });
   final String label;
   final String sub;
   final DateTime? completedAt;
   final VoidCallback onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final done = completedAt != null;
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: done
-                  ? AppPalette.accentSuccess.withOpacity(0.18)
-                  : AppPalette.brandBlue.withOpacity(0.18),
-              border: Border.all(
-                color: done
-                    ? AppPalette.accentSuccess.withOpacity(0.55)
-                    : AppPalette.brandBlue.withOpacity(0.55),
+    final accent = locked
+        ? context.c.textMuted
+        : done
+            ? AppPalette.accentSuccess
+            : AppPalette.brandBlue;
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        onTap: onTap,
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent.withValues(alpha: 0.18),
+                border: Border.all(color: accent.withValues(alpha: 0.55)),
+              ),
+              child: Icon(
+                locked
+                    ? Icons.lock_outline
+                    : done
+                        ? Icons.check_rounded
+                        : Icons.play_arrow_rounded,
+                size: 18,
+                color: accent,
               ),
             ),
-            child: Icon(
-              done ? Icons.check_rounded : Icons.play_arrow_rounded,
-              size: 18,
-              color: done
-                  ? AppPalette.accentSuccess
-                  : AppPalette.brandBlue,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: t.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text(
+                    locked
+                        ? 'Pro · $sub'
+                        : done
+                            ? 'Completed · ${DateFormat.MMMd().format(completedAt!)} · $sub'
+                            : sub,
+                    style: t.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: t.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Text(
-                  done
-                      ? 'Completed · ${DateFormat.MMMd().format(completedAt!)} · $sub'
-                      : sub,
-                  style: t.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            Icon(
+              locked ? Icons.lock_outline : Icons.chevron_right_rounded,
+              color: context.c.textMuted,
+              size: 22,
             ),
-          ),
-          Icon(Icons.chevron_right_rounded,
-              color: context.c.textMuted, size: 22),
-        ],
+          ],
+        ),
       ),
     );
   }
