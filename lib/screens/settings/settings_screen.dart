@@ -385,9 +385,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 36),
               Center(
-                child: Text(
-                  'TOEFLsix · v1.0.0',
-                  style: t.labelSmall,
+                child: Column(
+                  children: [
+                    Text(
+                      'TOEFLsix · v1.0.0',
+                      style: t.labelSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'An independent study tool. Not affiliated with, endorsed by, '
+                      'or sponsored by ETS or the IELTS partners. TOEFL® and IELTS® '
+                      'are trademarks of their respective owners.',
+                      textAlign: TextAlign.center,
+                      style: t.labelSmall?.copyWith(color: context.c.textFaint),
+                    ),
+                  ],
                 ),
               ),
             ],

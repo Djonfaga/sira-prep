@@ -1,5 +1,5 @@
 name: toeflsix
-description: "TOEFLsix - TOEFL & IELTS prep with Liquid Glass design"
+description: "An independent study app for English-proficiency exams (TOEFL & IELTS): practice, vocabulary, and grammar."
 publish_to: 'none'
 version: 1.0.0+1
 
