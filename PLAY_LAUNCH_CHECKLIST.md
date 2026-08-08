@@ -83,8 +83,10 @@ Honest list, so nothing ships by accident:
 - **Purchases are validated on-device.** Enough to gate features honestly for ordinary users, but
   spoofable on a rooted device. Move validation server-side before scaling paid users — an
   endpoint that checks the purchase token against the Play Developer API.
-- **Settings still says Google sign-in "arrives with the next signed release."** That release is
-  now this one. Either build sign-in or reword the button before upload.
+- **No account system.** The Account card was removed rather than shipping a sign-in button that
+  promised a release it could not deliver. Progress lives in `SharedPreferences` and entitlements
+  are tied to the Google Play account, so nothing is lost — but progress does **not** transfer to
+  a new device, and the store listing must not imply it does.
 - **Hearts apply to Grammar and Vocabulary only.** Reading, Listening, Speaking, Writing and Mocks
   withhold grading until the end by design, so there is no honest moment to spend a heart, and
   interrupting a timed section would corrupt the score. This is deliberate, not an oversight.

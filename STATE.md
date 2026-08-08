@@ -214,10 +214,7 @@ Everything here needs your Play account or your decision. None of it is code.
 In rough priority order, for whenever you want them:
 
 1. Fix whatever device testing turns up.
-2. **Reword or build the Google sign-in button.** Settings still says sign-in
-   "arrives with the next signed release" — that release is this one. There is
-   no backend, so removing the button may be the right call for v1.1.
-3. **Server-side purchase validation** — an endpoint checking the purchase token
+2. **Server-side purchase validation** — an endpoint checking the purchase token
    against the Play Developer API.
 4. **Enable R8/minification.** `android/app/build.gradle.kts` has no
    `isMinifyEnabled`, so the 51 MB bundle is unshrunk. Vocablo's proguard rules
@@ -227,6 +224,12 @@ In rough priority order, for whenever you want them:
 6. Grow the content bank, especially IELTS (12 passages against TOEFL's 30).
 7. Crash reporting.
 8. Localisation — a `locale` setting exists but the UI is English-only.
+9. **Account system / cloud sync.** The Account card was removed rather than
+   ship a sign-in button promising a release it couldn't deliver. The
+   consequence is real and now explicit: progress lives only on the device and
+   does not transfer to a new phone. Entitlements *do* follow the Google Play
+   account, so a paying user who switches devices keeps Pro but loses their
+   history. The store listing must not imply otherwise.
 
 ---
 

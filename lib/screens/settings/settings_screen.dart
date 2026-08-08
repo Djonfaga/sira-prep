@@ -116,53 +116,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SubscriptionCard(),
               const SizedBox(height: 14),
 
-              // Account
-              GlassCard(
-                tint: GlassTints.forIndex(3),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const IconTile(
-                            icon: Icons.shield_outlined,
-                            color: AppPalette.brandBlue),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Account', style: t.headlineMedium),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Sign-in keeps your coaching and cloud-ready identity consistent across sessions.',
-                                style: t.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    GlowButton(
-                      label: 'Continue with Google',
-                      icon: Icons.cloud_outlined,
-                      expand: true,
-                      // Real Google sign-in is out of scope for the debug
-                      // build; the button is wired for the future.
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Google sign-in arrives with the next signed release.')),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
+              // No Account card: there is no backend and nothing to sync.
+              // Progress lives in SharedPreferences and purchases are tied to
+              // the Play account, so an app-level sign-in would buy the user
+              // nothing. Re-add this only alongside a real account system.
 
               // Profile
               GlassCard(
