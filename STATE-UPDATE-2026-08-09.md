@@ -34,6 +34,19 @@ Last commit I pushed to GitHub: **`fcf97ff`** (the rebrand). Local is **ahead** 
   `https://github.com/Djonfaga/sira-prep.git` (the old URL auto-redirects).
 - **Public repo: https://github.com/Djonfaga/sira-prep** · remote HEAD verified `e26dc50`.
 
+## 🔨 Latest build — release APK (10 Aug 2026)
+Built from `ef5669d` (v1.1.0+2), signed, verified with `apksigner` + `aapt` (not the build log):
+
+- **`SiraPrep-v1.1.0-release.apk`** — 52.3 MB, **universal** (all ABIs, installs on any device);
+  copied to the Desktop. For **sideload device testing** only.
+- signer **`CN=TOEFLsix`** = the real **release** key (not debug) · package **`com.siraprep.app`**
+  · versionName **1.1.0** / versionCode **2** · label **Sira Prep**.
+- permissions in the APK: `RECORD_AUDIO` + `com.android.vending.BILLING` ✅.
+- ⚠ **Purchases will NOT complete from this sideloaded APK** — Play only honours purchases for
+  builds delivered through Play. Test purchases via the **internal-testing track** (upload the AAB
+  named in [STATE.md](STATE.md) §3), not this file.
+- The Play **upload** artifact is still the AAB, not this APK.
+
 ## ⚠ Do-not-forget
 - **Back up `android/app/upload-keystore.jks` + `android/key.properties`** off this machine
   (gitignored; irreversible if lost). Alias `upload`; the password is intentionally **not**
